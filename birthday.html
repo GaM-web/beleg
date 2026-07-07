@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Drip Cake & Password Protected</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #fbcbc9;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Great Vibes', cursive;
+            position: relative;
+        }
+
+        /* --- НУУЦ ҮГ ОРУУЛАХ ЦОНХ --- */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fbcbc9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.8s ease, visibility 0.8s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 340px;
+        }
+
+        .login-box h2 {
+            color: #c2185b;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #fbcbc9;
+            border-radius: 10px;
+            outline: none;
+            font-size: 1rem;
+            text-align: center;
+            transition: 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .login-box input:focus {
+            border-color: #c2185b;
+        }
+
+        .login-box button {
+            background: #c2185b;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .login-box button:hover {
+            background: #a01248;
+        }
+
+        .error-msg {
+            color: #d32f2f;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* --- БЯЛУУ БОЛДОГ ҮНДСЭН ХАЙРЦАГ --- */
+        .card-container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            display: none; /* Нууц үг хийхээс өмнө харагдахгүй */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cake-wrapper {
+            position: relative;
+            width: 260px;
+            height: 280px;
+            margin-bottom: 20px;
+        }
+
+        /* ҮНДСЭН СУУРИУД */
+        .base { position: absolute; left: 50%; transform: translateX(-50%) translateY(-100vh); border-radius: 8px 8px 4px 4px; opacity: 0; }
+        .base.bottom { bottom: 0; width: 240px; height: 70px; background: #6f4e37; box-shadow: inset 0 8px 0 #5c3a21; }
+        .base.middle { bottom: 70px; width: 180px; height: 65px; background: #8b5a42; box-shadow: inset 0 8px 0 #734834; }
+        .base.top    { bottom: 135px; width: 120px; height: 60px; background: #a06a50; box-shadow: inset 0 8px 0 #89563f; }
+
+        /* КРЕМҮҮД */
+        .cream-liquid { position: absolute; left: 50%; transform: translateX(-50%) translateY(-100vh); background: #ffffff; border-radius: 12px 12px 0 0; transform-origin: bottom center; opacity: 0; z-index: 2; }
+        .cream-liquid.bottom { bottom: 55px; width: 240px; height: 30px; }
+        .cream-liquid.middle { bottom: 120px; width: 180px; height: 26px; }
+        .cream-liquid.top    { bottom: 180px; width: 120px; height: 22px; }
+
+        .cream-drips {
+            position: absolute; bottom: -10px; left: 0; width: 100%; height: 16px;
+            background-image: radial-gradient(circle at 12px 0, #ffffff 12px, transparent 13px),
+                              radial-gradient(circle at 36px 0, #ffffff 9px, transparent 10px),
+                              radial-gradient(circle at 60px 0, #ffffff 14px, transparent 15px),
+                              radial-gradient(circle at 84px 0, #ffffff 8px, transparent 9px),
+                              radial-gradient(circle at 108px 0, #ffffff 13px, transparent 14px);
+            background-size: 120px 100%;
+        }
+
+        /* ЛАА */
+        .candle { position: absolute; bottom: 190px; left: 50%; transform: translateX(-50%) translateY(-100vh); width: 8px; height: 45px; background: linear-gradient(to right, #ffec99, #ffbe3b); border-radius: 3px 3px 0 0; opacity: 0; }
+        .wick { position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 2px; height: 6px; background: #444; }
+        .flame { position: absolute; top: -22px; left: 50%; transform: translateX(-50%) scale(0); width: 12px; height: 18px; background: #ff9233; border-radius: 50% 50% 20% 20% / 60% 60% 40% 40%; box-shadow: 0 0 10px #ff9233, 0 0 20px #ffbe3b, 0 0 30px #ffffff; }
+
+        /* ТЕКСТ */
+        .Happy__Birthday { font-size: 4.5rem; font-weight: 700; color: #c2185b; text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.7); opacity: 0; transform: translateY(20px); }
+
+        /* СААНУУД */
+        .confetti { position: absolute; top: -20px; opacity: 0; z-index: 1; }
+        .confetti.circle { border-radius: 50%; }
+        .confetti.line { width: 4px !important; border-radius: 2px; }
+        .confetti.star { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+        /* --- АНИМАЦИУДЫГ ИДЭВХЖҮҮЛЭХ КЛАССУУД (Зөвхөн нууц үг хийсний дараа ажиллана) --- */
+        .animate-dropSolid { animation: dropSolid 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+        .animate-dropLiquid { animation: dropLiquid 0.8s ease-in-out forwards; }
+        .animate-ignite { animation: ignite 0.3s ease-out forwards, flicker 0.6s ease-in-out infinite alternate 0.3s; }
+        .animate-fadeInUp { animation: fadeInUp 1.5s ease-out forwards; }
+        .animate-confetti { animation: confettiFall 4s linear infinite; }
+
+        @keyframes dropSolid { 0% { transform: translateX(-50%) translateY(-100vh); opacity: 1; } 100% { transform: translateX(-50%) translateY(0); opacity: 1; } }
+        @keyframes dropLiquid {
+            0% { transform: translateX(-50%) translateY(-100vh) scaleY(2.5) scaleX(0.6); opacity: 1; }
+            50% { transform: translateX(-50%) translateY(0) scaleY(1.5) scaleX(0.8); opacity: 1; }
+            70% { transform: translateX(-50%) translateY(8px) scaleY(0.4) scaleX(1.3); opacity: 1; }
+            85% { transform: translateX(-50%) translateY(-3px) scaleY(1.1) scaleX(0.9); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(0) scaleY(1) scaleX(1); opacity: 1; }
+        }
+        @keyframes ignite { to { transform: translateX(-50%) scale(1); } }
+        @keyframes flicker { 0% { transform: translateX(-50%) scale(1); opacity: 0.9; } 100% { transform: translateX(-50%) scale(1.1) skewX(3deg); opacity: 1; } }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes confettiFall {
+            0% { top: -20px; opacity: 0; transform: translateX(0) rotate(0deg); }
+            10% { opacity: 1; } 90% { opacity: 1; }
+            100% { top: 100vh; opacity: 0; transform: translateX(var(--drift-x)) rotate(var(--rot)); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>Код оруулна уу 💝</h2>
+            <input type="password" id="password-input" placeholder="Нууц үг...">
+            <button onclick="checkPassword()">Нээх ✨</button>
+            <div class="error-msg" id="error-message">Буруу байна, дахин оролдоно уу!</div>
+        </div>
+    </div>
+
+    <div id="confetti-container" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; overflow: hidden; pointer-events: none;"></div>
+
+    <div class="card-container" id="main-card">
+        <div class="cake-wrapper">
+            
+            <div class="candle" id="candle">
+                <div class="wick"></div>
+                <div class="flame" id="flame"></div>
+            </div>
+
+            <div class="base top" id="base-top"></div>
+            <div class="cream-liquid top" id="cream-top"><div class="cream-drips"></div></div>
+
+            <div class="base middle" id="base-middle"></div>
+            <div class="cream-liquid middle" id="cream-middle"><div class="cream-drips"></div></div>
+            
+            <div class="base bottom" id="base-bottom"></div>
+            <div class="cream-liquid bottom" id="cream-bottom"><div class="cream-drips"></div></div>
+
+        </div>
+
+        <h1 class="Happy__Birthday" id="birthday-text">Happy Birthday My Love!</h1>
+    </div>
+
+    <script>
+        // Нууц үгийг энд сольж болно
+        const CORRECT_PASSWORD = "0705"; 
+
+        function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-message');
+
+            if (input === CORRECT_PASSWORD) {
+                // Логин дэлгэцийг уусгаж алга болгох
+                const loginScreen = document.getElementById('login-screen');
+                loginScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loginScreen.style.visibility = 'hidden';
+                    startCakeAnimation(); // Зөв бол анимацийг эхлүүлэх
+                }, 800);
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('password-input').value = '';
+            }
+        }
+
+        // Энтер товч дарахад орох боломжтой болгох
+        document.getElementById('password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // Анимацийг дарааллаар нь ажиллуулах функц
+        function startCakeAnimation() {
+            document.getElementById('main-card').style.display = 'flex';
+
+            // 1. Доод давхарга
+            setTimeout(() => document.getElementById('base-bottom').classList.add('animate-dropSolid'), 200);
+            setTimeout(() => document.getElementById('cream-bottom').classList.add('animate-dropLiquid'), 600);
+
+            // 2. Дунд давхарга
+            setTimeout(() => document.getElementById('base-middle').classList.add('animate-dropSolid'), 1200);
+            setTimeout(() => document.getElementById('cream-middle').classList.add('animate-dropLiquid'), 1600);
+
+            // 3. Дээд давхарга
+            setTimeout(() => document.getElementById('base-top').classList.add('animate-dropSolid'), 2200);
+            setTimeout(() => document.getElementById('cream-top').classList.add('animate-dropLiquid'), 2600);
+
+            // 4. Лаа ба Гал
+            setTimeout(() => document.getElementById('candle').classList.add('animate-dropSolid'), 3200);
+            setTimeout(() => document.getElementById('flame').classList.add('animate-initiate', 'animate-ignite'), 3800);
+
+            // 5. Текст болон Саанууд
+            setTimeout(() => {
+                document.getElementById('birthday-text').classList.add('animate-fadeInUp');
+                createConfetti(); // Саануудыг унаж эхлүүлэх
+            }, 4100);
+        }
+
+        // Саа үүсгэгч
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#ffd700', '#ff1493', '#00ffff', '#ffefd5', '#ff4500', '#adff2f', '#ffffff'];
+            const shapes = ['circle', 'line', 'star', 'square'];
+
+            for (let i = 0; i < 80; i++) {
+                const confetti = document.createElement('div');
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                confetti.classList.add('confetti', shape);
+                
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                let width = Math.random() * 8 + 6;
+                let height = Math.random() * 8 + 6;
+                if (shape === 'line') {
+                    width = Math.random() * 3 + 2;
+                    height = Math.random() * 18 + 12;
+                }
+                confetti.style.width = width + 'px';
+                confetti.style.height = height + 'px';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                
+                const driftX = (Math.random() * 150 - 75) + 'px';
+                const rot = (Math.random() * 720 + 360) + 'deg';
+                confetti.style.setProperty('--drift-x', driftX);
+                confetti.style.setProperty('--rot', rot);
+
+                confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                confetti.style.animationDelay = (Math.random() * 3) + 's'; // Цуварч унах
+
+                confetti.classList.add('animate-confetti');
+                container.appendChild(confetti);
+            }
+        }
+    </script>
+</body>
+</html>
